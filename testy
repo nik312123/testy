@@ -329,6 +329,7 @@ class Segment:
     self.use_valgrind_sub = None       # use valgrind by substituting the valgrind command into the comand at the matching string
     self.valgrind_reachable = True     # whether to count reachable memory as an error in valgrind; usually reachable memory is fopen() with no fclose()
     self.valgrind_opts = ""            # additional options to pass to valgrind such as suppression
+    self.valgrind_out_exact_pid = True # whether to match exact pid when catching valgrind output or match more flexibly
     self.use_stdbuf = True             # whether to run program under stdbuf program to eliminate I/O buffering
     self.skip_diff = False             # True if diffing the expect/actual should be skipped
     self.skip_exitcode = False         # True if the expected exit code should be checked (e.g. not trigger a failure)
@@ -547,6 +548,7 @@ class Segment:
       valgrind_index = self.full_program.index(valg_str)            # index valgrind should be inserted in command line
       self.full_program.pop(valgrind_index)                         # remove existing string and insert via slicing
       self.full_program[valgrind_index:valgrind_index] = valgrind_full
+      self.use_valgrind=True
     else:
       self.full_program.extend(shlex.split(self.program))           # ONLY add on actual program
 
@@ -654,10 +656,14 @@ class Segment:
     """
     if not self.use_valgrind:
       return
-    val_re = re.compile(f"=={self.pid}==" + r".*?\n")
-    # matches valgrind output lines, technically should not need the ?
+    # below matches valgrind output lines, technically should not need the ?
     # for non-greedy matching as Python REs do not match \n by default
     # but an leaving this in to try to express intent
+    val_re = None
+    if self.valgrind_out_exact_pid:                                 # match exact pid
+      val_re = re.compile(f"=={self.pid}==" + r".*?\n")
+    else:                                                           # or flexible maching
+      val_re = re.compile(f"^==[0-9]+==" + r".*?\n",re.MULTILINE)
     self.output_valgrind = "".join(re.findall(val_re,self.output_actual))
     self.output_actual = re.sub(val_re,"",self.output_actual,count=0)
 
