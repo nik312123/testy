@@ -326,6 +326,7 @@ class Segment:
     self.echoing = "input"             # style of echoing done by the program, "input" echoes input, "both" for prompt+input echoing
     self.session = ""                  # string with lines of the session of input/output to be used
     self.use_valgrind = False          # whether to run program under valgrind
+    self.use_valgrind_sub = None       # use valgrind by substituting the valgrind command into the comand at the matching string
     self.valgrind_reachable = True     # whether to count reachable memory as an error in valgrind; usually reachable memory is fopen() with no fclose()
     self.valgrind_opts = ""            # additional options to pass to valgrind such as suppression
     self.use_stdbuf = True             # whether to run program under stdbuf program to eliminate I/O buffering
@@ -528,14 +529,27 @@ class Segment:
         self.messages.append("stdbuf not found for test that has use_stdbuf=1")
         return
       self.full_program.extend(STDBUF_PROG)
+    # VALGRIND AND FULL PROGRAM 
     if self.use_valgrind:                      # valgrind next if it is in use
       if not shutil.which("valgrind"):
         self.passed = False
         self.messages.append("Valgrind not found for test that has use_valgrind=1")
         return
-      self.full_program.extend(VALGRIND_PROG)  # add base valgrind program and options
+      self.full_program.extend(VALGRIND_PROG)                       # add valgrind program and options
       self.full_program.extend(shlex.split(self.valgrind_opts))
-    self.full_program.extend(shlex.split(self.program))  # add on actual program
+      self.full_program.extend(shlex.split(self.program))           # add on actual program
+    elif self.use_valgrind_sub:                                     # valgrind should be inserted somewhere
+      self.full_program.extend(shlex.split(self.program))           # start with full program
+      valg_str = self.use_valgrind_sub                              # string to search for in command and substitue
+      valgrind_full = []                                            # form full valgrind invocation
+      valgrind_full.extend(VALGRIND_PROG)                           # base valgrind and
+      valgrind_full.extend(shlex.split(self.valgrind_opts))         # user options
+      valgrind_index = self.full_program.index(valg_str)            # index valgrind should be inserted in command line
+      self.full_program.pop(valgrind_index)                         # remove existing string and insert via slicing
+      self.full_program[valgrind_index:valgrind_index] = valgrind_full
+    else:
+      self.full_program.extend(shlex.split(self.program))           # ONLY add on actual program
+
 
   def go_to_testdir(self):
     """Change into the testing directory"""
