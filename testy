@@ -523,35 +523,30 @@ class Segment:
 
   def set_full_program(self):
     """Sets full_program field which may include valgrind"""
-    self.full_program = []                     # set up the full arg list for the segment
-    if self.use_stdbuf:                        # stdbuf first as valgrind output is truncated otherwise
+    full_program = []                                        # set up the full arg list for the segment
+    if self.use_stdbuf:                                      # stdbuf first as valgrind output is truncated otherwise
       if not shutil.which("stdbuf"):
         self.passed = False
         self.messages.append("stdbuf not found for test that has use_stdbuf=1")
         return
-      self.full_program.extend(STDBUF_PROG)
-    # VALGRIND AND FULL PROGRAM 
-    if self.use_valgrind:                      # valgrind next if it is in use
-      if not shutil.which("valgrind"):
-        self.passed = False
-        self.messages.append("Valgrind not found for test that has use_valgrind=1")
-        return
-      self.full_program.extend(VALGRIND_PROG)                       # add valgrind program and options
-      self.full_program.extend(shlex.split(self.valgrind_opts))
-      self.full_program.extend(shlex.split(self.program))           # add on actual program
-    elif self.use_valgrind_sub:                                     # valgrind should be inserted somewhere
-      self.full_program.extend(shlex.split(self.program))           # start with full program
-      valg_str = self.use_valgrind_sub                              # string to search for in command and substitue
-      valgrind_full = []                                            # form full valgrind invocation
-      valgrind_full.extend(VALGRIND_PROG)                           # base valgrind and
-      valgrind_full.extend(shlex.split(self.valgrind_opts))         # user options
-      valgrind_index = self.full_program.index(valg_str)            # index valgrind should be inserted in command line
-      self.full_program.pop(valgrind_index)                         # remove existing string and insert via slicing
-      self.full_program[valgrind_index:valgrind_index] = valgrind_full
-      self.use_valgrind=True
-    else:
-      self.full_program.extend(shlex.split(self.program))           # ONLY add on actual program
-
+      full_program.extend(STDBUF_PROG)
+    if not self.use_valgrind:                                # not using valgrind so
+      full_program.extend(shlex.split(self.program))         # only add on actual program
+    elif not shutil.which("valgrind"):                       # using valgrind, check for presence
+      self.passed = False
+      self.messages.append("Valgrind not found for test that has use_valgrind=1")
+      return
+    else:                                                    # using valgrind and found
+      valg_index = len(full_program)                         # default to prepend valgrind ahead of program
+      full_program.extend(shlex.split(self.program))         # add on actual program
+      valg_full = []                                         # form full valgrind invocation from
+      valg_full.extend(VALGRIND_PROG)                        #   base valgrind and
+      valg_full.extend(shlex.split(self.valgrind_opts))      #   user options
+      if type(self.use_valgrind)==type("str"):               # if a string, don't prepend, substitute given
+        valg_index = full_program.index(self.use_valgrind)   # string for valgrind program by removing string
+        full_program.pop(valg_index)                         # and setting the index for insertion
+      full_program[valg_index:valg_index] = valg_full        # add valgrind at index via slicing
+    self.full_program = full_program
 
   def go_to_testdir(self):
     """Change into the testing directory"""
