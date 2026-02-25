@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# Release: Tue Jul 29 04:24:20 PM EDT 2025
+# Release: Fri Feb  6 11:04:03 AM EST 2026
 """Testy: run test cases on command line programs"""
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 
 ### Imports
 import sys                                # argv etc
