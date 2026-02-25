@@ -146,6 +146,17 @@ and environment variables to their appropriate locations.
 Below is a laundry list of items that could use a few tweaks or be
 improved. If you're looking to contribute, try taking on one of these. 
 
+** TODO Check on test option propagation down to segments
+Found that in the current parsing scheme (<2026-02-25 Wed>) can't set
+segment options in a test that propagate down to segments; left an
+explicit comment about this but am finding it annoying now so will
+want to revisit that.
+
+** TODO Error messages for filters
+Failure to execute a post filter (missing / wrong permissions) will
+cause testy to crash; add a try/catch for this and print an error
+message or test result of some type.
+
 ** TODO add a NEWS file
 
 ** TODO publish to PyPI
@@ -193,7 +204,10 @@ easier to remember as it would be accessible via ~testy --help~
 - Bad interaction which causes failure on these
 
 ** TODO Segment section names
-In parsing segments in org files, capture the segment names
+- In parsing segments in org files, capture the segment names
+- When regenerating tests, eliminate the errant ~** Segment~ heading
+  that comes up - likely handling the naming of segments themselves
+  will take care of this
 
 ** TODO Long vs Short Diff
 When expected results are very long but actual results are short, the
@@ -206,6 +220,9 @@ rather than be plopped midway through
 ** TODO Python MPI Program Compatibility
 Test python version on mpi programs MPI especially with
 Valgrind, see 5451 examples from S2023
+
+Wed Feb 25 04:37:41 PM EST 2026: worked on this as part of the CMSC416
+offering. Have made substantial progress which I will document here later.
 
 ** TODO Python TESTY_MULTI Support
 Design and implementation within testyp for testing multiple
