@@ -344,6 +344,7 @@ class Segment:
     self.diff_ignore_blanklines = True # Blank lines do not affect diff results
     self.diff_ignore_trail_ws = True   # Any trailing whitespace is stripped / ignored when doing diffs
     self.diff_sym_equal = "."          # Symbol to use in side-by-side diff for equal lines
+    self.env_var = {}                  # Environment variables to set prior to exec()'ing child program
 
     # these fields are set after the segment is run
     self.full_program = []             # full program invocation, may be decorated (usually with valgrind call)
@@ -407,6 +408,8 @@ class Segment:
 
     # CHILD PROCESS
     if self.pid == 0:
+      for var,val in self.env_var.items():     # set child environ vars prior to exec()'ing
+        os.environ[var] = val                   # don't do this in parent process
       os.close(to_child_w)
       os.close(fr_child_r)
       # NOTE: intentionally using constants 0,1,2 below. Previously
@@ -1240,6 +1243,10 @@ class OrgSuiteParser:
         elif first == "#+TESTY:" and rest=='set_bash_opts':  # reset to bash options
           log.debug(f"Setting segment to bash options")
           segment.set_bash_opts()
+        elif first == "#+TESTY:" and rest.startswith('env_var '):
+          tokens = rest.split()
+          log.debug(f"Setting segment environment variable '{tokens[1]}' to '{tokens[2]}'")
+          segment.env_var[tokens[1]] = tokens[2]
         elif first == "#+TESTY:":
           (key,val) = get_keyval(rest,locals())          # raises exception if badly formatted
           segment.__dict__[key] = val
