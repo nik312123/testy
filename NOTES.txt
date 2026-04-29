@@ -146,6 +146,32 @@ and environment variables to their appropriate locations.
 Below is a laundry list of items that could use a few tweaks or be
 improved. If you're looking to contribute, try taking on one of these. 
 
+** TODO Early Directory as Default
+#+BEGIN_SRC python
+    self.results_dir_early = False     # whether to create results_dir before running the test
+#+END_SRC
+Consider making this default to True; it doesn't matter to much for
+most cases but when it does matter, it leads to tricky test failures
+where the test assumes the ~test-results/~ directory exists. I've had
+too many student tests where I neglect setting that option explicitly
+and get burned on it, especially since putting some output under the
+~test-results/~ directory means a ~make clean-tests~ will get rid of
+the ephemeral test results.  It seems a reasonable policy to just make
+the directory early.
+
+** TODO Update Environment variable handling
+Added option to set an environment variable for the subprocesses that
+will execute via
+#+BEGIN_SRC org
+#+TESTY: env_var NAME VAL
+#+END_SRC
+
+Discovered that the handling of this is limited to the Segment options
+and there is no support for how it is handled at the test suite (file)
+level. This makes it less flexible than desirable so look for a way to
+handle file-level specs as well, likely via passing things down
+through the chain of Suite->Test->Segment
+
 ** TODO Check on test option propagation down to segments
 Found that in the current parsing scheme (<2026-02-25 Wed>) can't set
 segment options in a test that propagate down to segments; left an
