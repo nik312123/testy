@@ -660,7 +660,9 @@ are likely to be added for support.
 If you want to advocate for work on one of these, let me know. While
 Org files are convenient to write, parsing them is a bear as they are
 less structured. Markdown will be similar as it is fairly
-free-form. The structured inpu but JSON likely has an easy
+free-form. The structured input for JSON is likely to be easy to parse
+but less pleasant generally to construct due to the need to escape
+various characters.
 
 ** Generating Expected Test Output from Programs
 A common occurrence for me as a programming teacher is that I'll want
